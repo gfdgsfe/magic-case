@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; }
+        .nft-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div id="main-ui">
+        <h1 class="text-2xl font-bold text-center mb-8 text-purple-400">MAGIC NFT CASE</h1>
+        
+        <div id="case" class="w-48 h-48 bg-purple-900/20 rounded-3xl flex items-center justify-center border-2 border-purple-500/30 shadow-[0_0_50px_rgba(168,85,247,0.2)] mb-10 mx-auto">
+            <span class="text-7xl">🎁</span>
+        </div>
+
+        <button onclick="startOpening()" class="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-2xl font-bold text-xl transition-all active:scale-95 shadow-lg shadow-purple-500/20">
+            ОТКРЫТЬ КЕЙС
+        </button>
+    </div>
+
+    <div id="selection-screen" class="hidden fixed inset-0 bg-slate-950/95 p-6 flex flex-col items-center justify-center">
+        <h2 class="text-xl font-bold mb-6 text-purple-300">ВЫБЕРИ ОДНУ КАРТУ</h2>
+        <div id="cards-container" class="grid grid-cols-2 gap-4 w-full">
+            </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        async function startOpening() {
+            tg.HapticFeedback.impactOccurred('heavy');
+            
+            // Запрашиваем 5 случайных предметов у нашего сервера (Python)
+            try {
+                const response = await fetch('http://localhost:8000/open_case');
+                const items = await response.json();
+                renderCards(items);
+            } catch (err) {
+                alert("Запусти server.py! Ошибка связи.");
+            }
+        }
+
+        function renderCards(items) {
+            const container = document.getElementById('cards-container');
+            const mainUi = document.getElementById('main-ui');
+            const selection = document.getElementById('selection-screen');
+
+            container.innerHTML = '';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'nft-card p-4 rounded-2xl text-center animate-pulse';
+                card.innerHTML = <div class="text-3xl mb-2">📅</div><div class="text-xs uppercase">${item.name}</div>;
+                card.onclick = () => claimItem(item);
+                container.appendChild(card);
+            });
+
+            mainUi.classList.add('hidden');
+            selection.classList.remove('hidden');
+        }
+
+        function claimItem(item) {
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showPopup({
+                title: 'Поздравляем!',
+                message: Ты получил: ${item.name},
+                buttons: [{type: 'ok'}]
+            }, () => {
+                location.reload(); // Перезагружаем для следующего раза
+            });
+        }
+    </script>
+</body>
+</html>
