@@ -2,91 +2,97 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #05070a; color: white; font-family: sans-serif; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .case-block { 
-            background: #161b22; border: 1px solid #30363d; border-radius: 12px; 
-            padding: 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; position: relative; z-index: 10;
-        }
-        .case-block:active { background: #1c2128; transform: scale(0.97); }
+        body { background: #0a0c10; color: #fff; font-family: 'Roboto', sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        #roulette-screen { display: none; position: fixed; inset: 0; background: #05070a; z-index: 9999; }
-        .window-box { position: relative; width: 100%; height: 160px; background: #0d1117; overflow: hidden; border-top: 2px solid #30363d; border-bottom: 2px solid #30363d; margin-top: 40vh; transform: translateY(-50%); }
-        .line-tape { display: flex; position: absolute; left: 0; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
-        .card-item { min-width: 120px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #161b22; }
-        .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: #fbbf24; z-index: 100; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
+        /* Оригинальный стиль контейнеров CaseMint */
+        .case-wrapper { padding: 15px; }
+        .case-card { 
+            background: #161b22; border: 1px solid #30363d; border-radius: 14px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px; margin-bottom: 12px; cursor: pointer;
+        }
+        
+        /* Движок Рулетки */
+        #roulette-container { display: none; position: fixed; inset: 0; background: #0a0c10; z-index: 9999; }
+        .roulette-window { 
+            position: absolute; top: 50%; left: 0; width: 100%; height: 160px; 
+            background: #0d1117; border-y: 2px solid #30363d; transform: translateY(-50%);
+            overflow: hidden;
+        }
+        .roulette-list { display: flex; position: absolute; left: 0; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
+        .roulette-item { 
+            min-width: 120px; height: 160px; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; border-right: 1px solid #161b22; 
+        }
+        .roulette-pointer { 
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; 
+            background: #eab308; z-index: 100; transform: translateX(-50%); box-shadow: 0 0 15px #eab308;
+        }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div id="ui-menu">
-        <div class="flex justify-between items-center mb-10 mt-4">
-            <h1 class="text-2xl font-black text-yellow-500 italic">MINT SHOP</h1>
-            <div class="bg-slate-900 border border-yellow-500/30 px-4 py-1 rounded-full text-sm font-bold">⭐ 1,250</div>
+    <div id="shop-view" class="case-wrapper">
+        <div class="flex justify-between items-center mb-6 px-2">
+            <h1 class="text-xl font-black italic text-yellow-500">CASE MINT</h1>
+            <div class="text-sm font-bold bg-gray-900 px-3 py-1 rounded-full border border-gray-800">⭐ 1,250</div>
         </div>
 
-        <div class="case-block" onclick="forceStart('Standard')">
+        <div class="case-card" onclick="openCase('Standard')">
             <div class="flex items-center gap-4">
-                <span class="text-5xl">📦</span>
+                <span class="text-4xl">📦</span>
                 <div>
-                    <div class="font-bold text-lg">Standard</div>
-                    <div class="text-[10px] text-gray-500 uppercase font-bold">RTP 70%</div>
+                    <p class="font-bold">Standard</p>
+                    <p class="text-[10px] text-gray-500">RTP 70%</p>
                 </div>
             </div>
-            <div class="bg-yellow-500 text-black font-black px-4 py-2 rounded-xl">100 ⭐</div>
+            <div class="bg-yellow-500 text-black font-black px-4 py-2 rounded-lg text-xs">100 ⭐</div>
         </div>
 
-        <div class="case-block" onclick="forceStart('Rare')">
+        <div class="case-card" onclick="openCase('Rare')">
             <div class="flex items-center gap-4">
-                <span class="text-5xl">💎</span>
+                <span class="text-4xl">💎</span>
                 <div>
-                    <div class="font-bold text-lg text-blue-400">Rare Chest</div>
-                    <div class="text-[10px] text-gray-500 uppercase font-bold">RTP 70%</div>
+                    <p class="font-bold text-blue-400">Rare Chest</p>
+                    <p class="text-[10px] text-gray-500">RTP 70%</p>
                 </div>
             </div>
-            <div class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl">500 ⭐</div>
+            <div class="bg-blue-600 px-4 py-2 rounded-lg text-xs font-black">500 ⭐</div>
         </div>
     </div>
 
-    <div id="roulette-screen">
-        <div class="text-center w-full absolute top-20">
-            <div class="text-yellow-500 font-black text-2xl animate-pulse italic">MINTING...</div>
-        </div>
-        <div class="window-box">
-            <div class="center-line"></div>
-            <div id="tape" class="line-tape"></div>
+    <div id="roulette-container">
+        <div class="roulette-window">
+            <div class="roulette-pointer"></div>
+            <div id="roulette-list" class="roulette-list"></div>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
-        const PRIZES = {
-            'Standard': [{e:'💩',v:'10 ⭐',c:40}, {e:'🪙',v:'50 ⭐',c:35}, {e:'💎',v:'200 ⭐',c:20}, {e:'🏆',v:'1000 ⭐',c:5}],
-            'Rare': [{e:'🪙',v:'50 ⭐',c:45}, {e:'💎',v:'300 ⭐',c:35}, {e:'🔋',v:'1000 ⭐',c:15}, {e:'👑',v:'5000 ⭐',c:5}]
+        const DATA = {
+            'Standard': [{e:'💩',v:'10 ⭐',c:40},{e:'🪙',v:'50 ⭐',c:35},{e:'💎',v:'200 ⭐',c:20},{e:'🏆',v:'1000 ⭐',c:5}],
+            'Rare': [{e:'🪙',v:'50 ⭐',c:45},{e:'💎',v:'300 ⭐',c:35},{e:'🔋',v:'1000 ⭐',c:15},{e:'👑',v:'5000 ⭐',c:5}]
         };
 
-        function forceStart(caseType) {
-            // Мгновенная вибрация
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+        function openCase(type) {
+            tg.HapticFeedback.impactOccurred('heavy');
             
-            const menu = document.getElementById('ui-menu');
-            const screen = document.getElementById('roulette-screen');
-            const tape = document.getElementById('tape');
-            const items = PRIZES[caseType];
+            const shop = document.getElementById('shop-view');
+            const container = document.getElementById('roulette-container');
+            const list = document.getElementById('roulette-list');
+            const items = DATA[type];
 
-            // Переключаем экраны
-            menu.style.display = 'none';
-            screen.style.display = 'block';
-            tape.innerHTML = '';
-
-            // Генерируем призы
+            shop.style.display = 'none';
+            container.style.display = 'block';
+            list.innerHTML = '';
+            // Генерация ленты
             let pool = [];
             for (let i = 0; i < 80; i++) {
                 const r = Math.random() * 100;
@@ -96,28 +102,29 @@
                     if (r <= s) { win = itm; break; }
                 }
                 pool.push(win);
-                const el = document.createElement('div');
-                el.className = 'card-item';
-                el.innerHTML = <div style="font-size:45px">${win.e}</div><div style="font-size:14px;font-weight:900;margin-top:10px">${win.v}</div>;
-                tape.appendChild(el);
+                const div = document.createElement('div');
+                div.className = 'roulette-item';
+                div.innerHTML = <div style="font-size:40px">${win.e}</div><div style="font-size:12px;font-weight:bold;margin-top:10px">${win.v}</div>;
+                list.appendChild(div);
             }
 
-            // Запуск прокрутки
-            const cardW = 121;
-            const target = 75;
-            const stop = (target * cardW) - (window.innerWidth / 2) + (cardW / 2);
+            // Запуск
+            const itemWidth = 121;
+            const target = 70; // На каком элементе остановимся
+            const x = (target * itemWidth) - (window.innerWidth / 2) + (itemWidth / 2);
 
             setTimeout(() => {
-                tape.style.transform = translateX(-${stop}px);
+                list.style.transform = translateX(-${x}px);
             }, 100);
 
-            // Финал
+            // Итог
             setTimeout(() => {
-                const win = pool[target];
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                alert("🎉 Твой приз: " + win.v);
-                location.reload();
-            }, 6600);
+                tg.showPopup({
+                    title: '🎉 ВЫИГРЫШ!',
+                    message: Ваш приз: ${pool[target].v},
+                    buttons: [{type: 'ok', text: 'ЗАБРАТЬ'}]
+                }, () => location.reload());
+            }, 6500);
         }
     </script>
 </body>
