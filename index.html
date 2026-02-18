@@ -3,53 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>StarCase Mint</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #05070a; color: white; font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        body { background: #05070a; color: white; font-family: sans-serif; margin: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* Стили Меню */
-        .case-item { background: linear-gradient(180deg, #161b22 0%, #0d1117 100%); border: 1px solid #30363d; border-radius: 16px; margin-bottom: 12px; transition: 0.2s; cursor: pointer; }
-        .case-item:active { transform: scale(0.98); background: #1c2128; }
+        /* Стили карточек из CaseMint */
+        .case-button { 
+            background: linear-gradient(180deg, #161b22 0%, #0d1117 100%); 
+            border: 1px solid #30363d; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .case-button:active { background: #1c2128; transform: scale(0.98); }
 
-        /* Рулетка (Mint Engine) */
-        #roulette-overlay { display: none; position: fixed; inset: 0; background: #05070a; z-index: 999; }
-        .window { position: relative; width: 100%; height: 160px; background: #0d1117; overflow: hidden; border-top: 2px solid #30363d; border-bottom: 2px solid #30363d; margin-top: 30%; }
-        .pointer { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #fbbf24; z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
-        .list { display: flex; position: absolute; left: 0; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
-        .card { min-width: 120px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #161b22; font-size: 40px; }
-        
-        .rarity-common { color: #8b949e; }
-        .rarity-rare { color: #58a6ff; text-shadow: 0 0 10px #58a6ff55; }
-        .rarity-legend { color: #d29922; text-shadow: 0 0 15px #d2992288; }
+        /* Движок рулетки */
+        #roulette-view { display: none; position: fixed; inset: 0; background: #05070a; z-index: 1000; }
+        .win-box { position: relative; width: 100%; height: 160px; background: #0d1117; overflow: hidden; border-y: 2px solid #30363d; margin-top: 40%; }
+        .selector { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #fbbf24; z-index: 10; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
+        .tape { display: flex; position: absolute; left: 0; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
+        .card { min-width: 120px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #161b22; }
     </style>
 </head>
 <body>
 
-    <div id="shop-ui" class="p-4">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-xl font-bold italic tracking-tighter">STARCASE <span class="text-yellow-500">MINT</span></h1>
-            <div class="bg-slate-900 border border-yellow-500/40 px-3 py-1 rounded-full text-sm">
-                ⭐ <span id="user-balance">1,250</span>
-            </div>
+    <div id="main-ui" class="p-4">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-xl font-bold italic text-yellow-500">CASE MINT <span class="text-white">EDITION</span></h1>
+            <div class="bg-slate-900 border border-yellow-500/30 px-4 py-1 rounded-full text-sm font-bold">⭐ 1,250</div>
         </div>
 
-        <div id="cases-list">
-            <div class="case-item p-4 flex items-center justify-between" onclick="initSpin('Standard')">
+        <div class="space-y-3">
+            <div class="case-button" onclick="startMintSpin('Standard', 100)">
                 <div class="flex items-center gap-4">
-                    <div class="text-4xl">📦</div>
+                    <span class="text-4xl">📦</span>
                     <div>
-                        <div class="font-bold text-gray-200">Standard Case</div>
+                        <div class="font-bold">Standard Case</div>
                         <div class="text-[10px] text-gray-500 uppercase">RTP 70% • WIN UP TO 1000</div>
                     </div>
                 </div>
                 <div class="bg-yellow-500 text-black font-black px-3 py-1.5 rounded-lg text-xs">100 ⭐</div>
             </div>
 
-            <div class="case-item p-4 flex items-center justify-between border-blue-500/20" onclick="initSpin('Rare')">
+            <div class="case-button" onclick="startMintSpin('Rare', 500)">
                 <div class="flex items-center gap-4">
-                    <div class="text-4xl">💎</div>
+                    <span class="text-4xl">💎</span>
                     <div>
                         <div class="font-bold text-blue-400">Rare Chest</div>
                         <div class="text-[10px] text-gray-500 uppercase">RTP 70% • WIN UP TO 5000</div>
@@ -60,18 +63,14 @@
         </div>
     </div>
 
-    <div id="roulette-overlay">
+    <div id="roulette-view">
         <div class="text-center mt-10">
-            <div id="status-text" class="text-yellow-500 font-black italic text-xl animate-pulse">ОТКРЫВАЕМ...</div>
+            <div class="text-yellow-500 font-black italic text-2xl uppercase tracking-tighter">Minting prize...</div>
         </div>
         
-        <div class="window">
-            <div class="pointer"></div>
-            <div id="card-list" class="list"></div>
-        </div>
-
-        <div class="text-center mt-10 p-6">
-            <div class="text-gray-500 text-xs tracking-widest uppercase">Твой выигрыш зависит от удачи</div>
+        <div class="win-box">
+            <div class="selector"></div>
+            <div id="tape-line" class="tape"></div>
         </div>
     </div>
 
@@ -79,94 +78,75 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Конфигурация призов для RTP 70%
         const CONFIG = {
-            'Standard': {
-                price: 100,
-                items: [
-                    {img: '💩', val: '10 ⭐', rarity: 'common', chance: 40},
-                    {img: '🪙', val: '50 ⭐', rarity: 'common', chance: 35},
-                    {img: '💎', val: '200 ⭐', rarity: 'rare', chance: 20},
-                    {img: '🏆', val: '1000 ⭐', rarity: 'legend', chance: 5}
-                ]
-            },
-            'Rare': {
-                price: 500,
-                items: [
-                    {img: '🪙', val: '50 ⭐', rarity: 'common', chance: 45},
-                    {img: '💎', val: '300 ⭐', rarity: 'rare', chance: 35},
-                    {img: '🔋', val: '1000 ⭐', rarity: 'rare', chance: 15},
-                    {img: '👑', val: '5000 ⭐', rarity: 'legend', chance: 5}
-                ]
-            }
+            'Standard': [
+                {e: '💩', v: '10 ⭐', c: 40}, {e: '🪙', v: '50 ⭐', c: 35}, 
+                {e: '💎', v: '200 ⭐', c: 20}, {e: '🏆', v: '1000 ⭐', c: 5}
+            ],
+            'Rare': [
+                {e: '🪙', v: '50 ⭐', c: 45}, {e: '💎', v: '300 ⭐', c: 35},
+                {e: '🔋', v: '1000 ⭐', c: 15}, {e: '👑', v: '5000 ⭐', c: 5}
+            ]
         };
 
-        function initSpin(caseType) {
-            const data = CONFIG[caseType];
-            
-            tg.showConfirm(`Открыть ${caseType} за ${data.price} ⭐?`, (isConfirmed) => {
-                if (isConfirmed) {
-                    runRoulette(data.items);
+        function startMintSpin(type, price) {
+            // Вибрация при нажатии
+            tg.HapticFeedback.impactOccurred('medium');
+
+            tg.showConfirm(`Открыть ${type} за ${price} ⭐?`, (ok) => {
+                if (ok) {
+                    const items = CONFIG[type];
+                    const view = document.getElementById('roulette-view');
+                    const tape = document.getElementById('tape-line');
+                    
+                    document.getElementById('main-ui').style.display = 'none';
+                    view.style.display = 'block';
+                    tape.innerHTML = '';
+
+                    // Генерация ленты (CaseMint Style)
+                    let itemsPool = [];
+                    for (let i = 0; i < 70; i++) {
+                        const r = Math.random() * 100;
+                        let s = 0, win;
+                        for (let itm of items) {
+                            s += itm.c;
+                            if (r <= s) { win = itm; break; }
+                        }
+                        itemsPool.push(win);
+                        const el = document.createElement('div');
+                        el.className = 'card';
+                        el.innerHTML = <div style="font-size:40px">${win.e}</div><div style="font-size:12px; font-weight:bold; margin-top:10px">${win.v}</div>;
+                        tape.appendChild(el);
+                    }
+
+                    // Анимация прокрутки
+                    const cardW = 121;
+                    const targetIdx = 65;
+                    const stopPos = (targetIdx * cardW) - (window.innerWidth / 2) + (cardW / 2);
+
+                    setTimeout(() => {
+                        tape.style.transform = translateX(-${stopPos}px);
+                        
+                        // Тиканье вибрацией
+                        let t = 0;
+                        const tickInterval = setInterval(() => {
+                            tg.HapticFeedback.impactOccurred('light');
+                            if (++t > 55) clearInterval(tickInterval);
+                        }, 100);
+                    }, 100);
+
+                    // Показ результата
+                    setTimeout(() => {
+                        const winner = itemsPool[targetIdx];
+                        tg.HapticFeedback.notificationOccurred('success');
+                        tg.showPopup({
+                            title: '🎉 ВЫИГРЫШ!',
+                            message: Вы получили: ${winner.v},
+                            buttons: [{type: 'ok', text: 'ЗАБРАТЬ'}]
+                        }, () => location.reload());
+                    }, 6500);
                 }
             });
-        }
-
-        function runRoulette(items) {
-            const overlay = document.getElementById('roulette-overlay');
-            const list = document.getElementById('card-list');
-            
-            overlay.style.display = 'block';
-            list.innerHTML = '';
-            
-            // Генерируем ленту
-            let pool = [];
-            for (let i = 0; i < 70; i++) {
-                const rand = Math.random() * 100;
-                let sum = 0;
-                let win;
-                for (let itm of items) {
-                    sum += itm.chance;
-                    if (rand <= sum) { win = itm; break; }
-                }
-                pool.push(win);
-                
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = <div>${win.img}</div><div class="text-[10px] mt-2 font-bold ${'rarity-'+win.rarity}">${win.val}</div>;
-                list.appendChild(card);
-            }
-
-            // Анимация
-            const cardWidth = 121;
-            const targetIndex = 65;
-            const offset = (window.innerWidth / 2) - (cardWidth / 2);
-            const finalX = (targetIndex * cardWidth) - offset;
-
-            setTimeout(() => {
-                list.style.transform = translateX(-${finalX}px);
-                
-                // Вибро-отклик "Тиканье"
-                let ticks = 0;
-                const ticker = setInterval(() => {
-                    tg.HapticFeedback.impactOccurred('light');
-                    ticks++;
-                    if(ticks > 50) clearInterval(ticker);
-                }, 110);
-            }, 100);
-
-            // Результат
-            setTimeout(() => {
-                const winner = pool[targetIndex];
-                tg.HapticFeedback.notificationOccurred('success');
-                
-                tg.showPopup({
-                    title: '🎉 ПОБЕДА!',
-                    message: Твой выигрыш: ${winner.val},
-                    buttons: [{type: 'ok', text: 'ЗАБРАТЬ'}]
-                }, () => {
-                    location.reload();
-                });
-            }, 6500);
         }
     </script>
 </body>
