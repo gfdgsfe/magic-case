@@ -7,55 +7,58 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #05070a; color: white; font-family: sans-serif; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .btn-case { 
+        .case-block { 
             background: #161b22; border: 1px solid #30363d; border-radius: 12px; 
-            padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
-            position: relative; z-index: 999; touch-action: manipulation;
+            padding: 20px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; position: relative; z-index: 10;
         }
-        .btn-case:active { background: #1c2128; transform: scale(0.98); }
+        .case-block:active { background: #1c2128; transform: scale(0.97); }
         
-        #roulette-screen { display: none; position: fixed; inset: 0; background: #05070a; z-index: 10000; }
-        .win-window { position: relative; width: 100%; height: 160px; background: #0d1117; overflow: hidden; border-y: 2px solid #30363d; margin-top: 40%; }
-        .line { display: flex; position: absolute; left: 0; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
-        .item-card { min-width: 120px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #161b22; }
-        .marker { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: #fbbf24; z-index: 20; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
+        #roulette-screen { display: none; position: fixed; inset: 0; background: #05070a; z-index: 9999; }
+        .window-box { position: relative; width: 100%; height: 160px; background: #0d1117; overflow: hidden; border-top: 2px solid #30363d; border-bottom: 2px solid #30363d; margin-top: 40vh; transform: translateY(-50%); }
+        .line-tape { display: flex; position: absolute; left: 0; height: 100%; transition: transform 6s cubic-bezier(0.1, 0, 0.1, 1); }
+        .card-item { min-width: 120px; height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #161b22; }
+        .center-line { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; background: #fbbf24; z-index: 100; transform: translateX(-50%); box-shadow: 0 0 15px #fbbf24; }
     </style>
 </head>
 <body class="p-4">
 
-    <div id="main-menu">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-xl font-bold italic text-yellow-500">CASE MINT</h1>
-            <div class="bg-slate-900 border border-yellow-500/30 px-4 py-1 rounded-full text-sm">⭐ 1,250</div>
+    <div id="ui-menu">
+        <div class="flex justify-between items-center mb-10 mt-4">
+            <h1 class="text-2xl font-black text-yellow-500 italic">MINT SHOP</h1>
+            <div class="bg-slate-900 border border-yellow-500/30 px-4 py-1 rounded-full text-sm font-bold">⭐ 1,250</div>
         </div>
 
-        <div class="btn-case" onpointerdown="handlePress('Standard', 100)">
+        <div class="case-block" onclick="forceStart('Standard')">
             <div class="flex items-center gap-4">
-                <span class="text-4xl">📦</span>
+                <span class="text-5xl">📦</span>
                 <div>
-                    <div class="font-bold">Standard Case</div>
-                    <div class="text-[10px] text-gray-400">RTP 70%</div>
+                    <div class="font-bold text-lg">Standard</div>
+                    <div class="text-[10px] text-gray-500 uppercase font-bold">RTP 70%</div>
                 </div>
             </div>
-            <div class="bg-yellow-500 text-black font-black px-3 py-1.5 rounded-lg text-xs">100 ⭐</div>
+            <div class="bg-yellow-500 text-black font-black px-4 py-2 rounded-xl">100 ⭐</div>
         </div>
 
-        <div class="btn-case" onpointerdown="handlePress('Rare', 500)">
+        <div class="case-block" onclick="forceStart('Rare')">
             <div class="flex items-center gap-4">
-                <span class="text-4xl">💎</span>
+                <span class="text-5xl">💎</span>
                 <div>
-                    <div class="font-bold text-blue-400">Rare Chest</div>
-                    <div class="text-[10px] text-gray-400">RTP 70%</div>
+                    <div class="font-bold text-lg text-blue-400">Rare Chest</div>
+                    <div class="text-[10px] text-gray-500 uppercase font-bold">RTP 70%</div>
                 </div>
             </div>
-            <div class="bg-blue-600 text-white font-black px-3 py-1.5 rounded-lg text-xs">500 ⭐</div>
+            <div class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl">500 ⭐</div>
         </div>
     </div>
 
     <div id="roulette-screen">
-        <div class="win-window">
-            <div class="marker"></div>
-            <div id="tape" class="line"></div>
+        <div class="text-center w-full absolute top-20">
+            <div class="text-yellow-500 font-black text-2xl animate-pulse italic">MINTING...</div>
+        </div>
+        <div class="window-box">
+            <div class="center-line"></div>
+            <div id="tape" class="line-tape"></div>
         </div>
     </div>
 
@@ -69,21 +72,23 @@
             'Rare': [{e:'🪙',v:'50 ⭐',c:45}, {e:'💎',v:'300 ⭐',c:35}, {e:'🔋',v:'1000 ⭐',c:15}, {e:'👑',v:'5000 ⭐',c:5}]
         };
 
-        function handlePress(type, price) {
-            tg.HapticFeedback.impactOccurred('medium');
-            tg.showConfirm(`Открыть ${type} за ${price} ⭐?`, function(ok) {
-                if (ok) startAnimation(type);
-            });
-        }
-
-        function startAnimation(type) {
-            const items = PRIZES[type];
-            document.getElementById('main-menu').style.display = 'none';
+        function forceStart(caseType) {
+            // Мгновенная вибрация
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+            
+            const menu = document.getElementById('ui-menu');
             const screen = document.getElementById('roulette-screen');
             const tape = document.getElementById('tape');
+            const items = PRIZES[caseType];
+
+            // Переключаем экраны
+            menu.style.display = 'none';
             screen.style.display = 'block';
+            tape.innerHTML = '';
+
+            // Генерируем призы
             let pool = [];
-            for (let i = 0; i < 70; i++) {
+            for (let i = 0; i < 80; i++) {
                 const r = Math.random() * 100;
                 let s = 0, win;
                 for (let itm of items) {
@@ -92,26 +97,27 @@
                 }
                 pool.push(win);
                 const el = document.createElement('div');
-                el.className = 'item-card';
-                el.innerHTML = <div style="font-size:40px">${win.e}</div><div style="font-size:12px;font-weight:bold;margin-top:10px">${win.v}</div>;
+                el.className = 'card-item';
+                el.innerHTML = <div style="font-size:45px">${win.e}</div><div style="font-size:14px;font-weight:900;margin-top:10px">${win.v}</div>;
                 tape.appendChild(el);
             }
 
-            const cardWidth = 121;
-            const target = 65;
-            const stop = (target * cardWidth) - (window.innerWidth / 2) + (cardWidth / 2);
+            // Запуск прокрутки
+            const cardW = 121;
+            const target = 75;
+            const stop = (target * cardW) - (window.innerWidth / 2) + (cardW / 2);
 
             setTimeout(() => {
                 tape.style.transform = translateX(-${stop}px);
-            }, 50);
+            }, 100);
 
+            // Финал
             setTimeout(() => {
-                tg.showPopup({
-                    title: '🎉 ПРИЗ!',
-                    message: Выигрыш: ${pool[target].v},
-                    buttons: [{type: 'ok', text: 'ОК'}]
-                }, () => location.reload());
-            }, 6500);
+                const win = pool[target];
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                alert("🎉 Твой приз: " + win.v);
+                location.reload();
+            }, 6600);
         }
     </script>
 </body>
