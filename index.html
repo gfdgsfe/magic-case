@@ -6,118 +6,75 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #020617; color: white; font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; }
-        .case-card { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; transition: 0.2s; cursor: pointer; }
-        .case-card:active { transform: scale(0.95); }
+        body { background: #020617; color: white; font-family: sans-serif; overflow: hidden; margin: 0; -webkit-tap-highlight-color: transparent; }
+        .case-card { background: rgba(30,41,59,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; cursor: pointer; position: relative; z-index: 10; }
+        .case-card:active { transform: scale(0.95); background: rgba(51, 65, 85, 0.8); }
         
-        /* Стили рулетки */
         #roulette-container { display: none; position: fixed; inset: 0; background: #020617; z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
         .roulette-track { width: 100%; height: 150px; background: #0f172a; position: relative; overflow: hidden; border-top: 2px solid #334155; border-bottom: 2px solid #334155; margin: 40px 0; }
         .items-line { display: flex; position: absolute; left: 0; top: 0; height: 100%; transition: transform 6s cubic-bezier(0.15, 0, 0.05, 1); }
-        .item-slot { min-width: 130px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #1e293b; font-size: 45px; background: #0f172a; }
+        .item-slot { min-width: 130px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #1e293b; font-size: 45px; }
         .center-pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: #fbbf24; z-index: 10; transform: translateX(-50%); box-shadow: 0 0 20px #fbbf24; }
-        
-        .rarity-tag { font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-top: 5px; text-transform: uppercase; }
-        .common { background: #64748b; }
-        .rare { background: #3b82f6; }
-        .legendary { background: #f59e0b; }
     </style>
 </head>
 <body class="p-4">
 
-    <div id="menu" class="flex flex-col h-screen">
+    <div id="menu">
         <div class="flex justify-between items-center mb-8 pt-4">
-            <div>
-                <h1 class="text-2xl font-black text-yellow-500 italic tracking-tighter">STAR CASES</h1>
-                <p class="text-slate-500 text-[10px] uppercase tracking-widest">Premium Collection</p>
-            </div>
-            <div class="bg-slate-800 px-4 py-2 rounded-2xl border border-yellow-500/50 shadow-lg shadow-yellow-500/10">
-                <span class="font-bold">⭐ 1,250</span>
-            </div>
+            <h1 class="text-2xl font-black text-yellow-500 italic">STAR CASES</h1>
+            <div class="bg-slate-800 px-4 py-2 rounded-2xl border border-yellow-500/50">⭐ 1,250</div>
         </div>
 
-        <div class="space-y-4 overflow-y-auto pb-10">
+        <div class="space-y-4">
             <div class="case-card p-5 flex items-center justify-between border-l-4 border-slate-500" onclick="prepareSpin('Standard', 100)">
                 <div class="flex items-center gap-4">
                     <span class="text-5xl">📦</span>
-                    <div>
-                        <p class="font-black text-lg">Standard</p>
-                        <p class="text-[10px] text-slate-400">Шанс на 1000 ⭐</p>
-                    </div>
+                    <div><p class="font-black text-lg">Standard</p><p class="text-[10px] text-slate-400">RTP 70%</p></div>
                 </div>
-                <div class="bg-yellow-500 text-black px-4 py-2 rounded-xl font-black text-sm">100 ⭐</div>
+                <div class="bg-yellow-500 text-black px-4 py-2 rounded-xl font-black text-sm pointer-events-none">100 ⭐</div>
             </div>
 
             <div class="case-card p-5 flex items-center justify-between border-l-4 border-blue-500" onclick="prepareSpin('Rare', 500)">
                 <div class="flex items-center gap-4">
                     <span class="text-5xl">🔹</span>
-                    <div>
-                        <p class="font-black text-lg text-blue-400">Rare Chest</p>
-                        <p class="text-[10px] text-slate-400">Шанс на 5000 ⭐</p>
-                    </div>
+                    <div><p class="font-black text-lg text-blue-400">Rare Chest</p><p class="text-[10px] text-slate-400">RTP 70%</p></div>
                 </div>
-                <div class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-sm">500 ⭐</div>
-            </div>
-
-            <div class="case-card p-5 flex items-center justify-between border-l-4 border-yellow-500 shadow-lg shadow-yellow-500/5" onclick="prepareSpin('Legendary', 2000)">
-                <div class="flex items-center gap-4">
-                    <span class="text-5xl">👑</span>
-                    <div>
-                        <p class="font-black text-lg text-yellow-500">Legendary</p>
-                        <p class="text-[10px] text-slate-400">Шанс на 20,000 ⭐</p>
-                    </div>
-                </div>
-                <div class="bg-yellow-500 text-black px-4 py-2 rounded-xl font-black text-sm">2k ⭐</div>
+                <div class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-sm pointer-events-none">500 ⭐</div>
             </div>
         </div>
     </div>
 
     <div id="roulette-container">
-        <h2 id="spinning-title" class="text-2xl font-black text-yellow-500 italic">OPENING CASE...</h2>
-        
+        <h2 class="text-2xl font-black text-yellow-500 italic">OPENING...</h2>
         <div class="roulette-track">
             <div class="center-pointer"></div>
             <div id="items-line" class="items-line"></div>
-        </div>
-
-        <div class="text-center">
-            <p id="case-name-display" class="text-slate-400 font-bold uppercase tracking-widest text-sm mb-2"></p>
-            <div class="flex items-center justify-center gap-2 opacity-50">
-                <span class="w-2 h-2 bg-yellow-500 rounded-full animate-ping"></span>
-                <span class="text-[10px]">ОЖИДАНИЕ РЕЗУЛЬТАТА</span>
-            </div>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
 
-        // НАСТРОЙКИ ПРИЗОВ (RTP 70%)
         const CASE_SETTINGS = {
             'Standard': [
-                { emoji: '💩', val: '10 ⭐', chance: 40, rarity: 'common' },
-                { emoji: '🪙', val: '50 ⭐', chance: 35, rarity: 'common' },
-                { emoji: '💎', val: '200 ⭐', chance: 20, rarity: 'rare' },
-                { emoji: '🏆', val: '1000 ⭐', chance: 5, rarity: 'legendary' }
+                { emoji: '💩', val: '10 ⭐', chance: 40 },
+                { emoji: '🪙', val: '50 ⭐', chance: 35 },
+                { emoji: '💎', val: '200 ⭐', chance: 20 },
+                { emoji: '🏆', val: '1000 ⭐', chance: 5 }
             ],
             'Rare': [
-                { emoji: '🪙', val: '50 ⭐', chance: 45, rarity: 'common' },
-                { emoji: '💎', val: '300 ⭐', chance: 35, rarity: 'rare' },
-                { emoji: '🔋', val: '1000 ⭐', chance: 15, rarity: 'rare' },
-                { emoji: '🌀', val: '5000 ⭐', chance: 5, rarity: 'legendary' }
-            ],
-            'Legendary': [
-                { emoji: '💎', val: '200 ⭐', chance: 50, rarity: 'common' },
-                { emoji: '🌀', val: '1500 ⭐', chance: 30, rarity: 'rare' },
-                { emoji: '👑', val: '5000 ⭐', chance: 15, rarity: 'rare' },
-                { emoji: '⚡', val: '20k ⭐', chance: 5, rarity: 'legendary' }
+                { emoji: '🪙', val: '50 ⭐', chance: 45 },
+                { emoji: '💎', val: '300 ⭐', chance: 35 },
+                { emoji: '🔋', val: '1000 ⭐', chance: 15 },
+                { emoji: '🌀', val: '5000 ⭐', chance: 5 }
             ]
         };
 
-        function prepareSpin(name, price) {
-            tg.showConfirm(`Вы действительно хотите открыть ${name} за ${price} звезд?`, (ok) => {
+        function prepareSpin(name, price) {console.log("Клик по кейсу:", name); // Для отладки
+            tg.HapticFeedback.impactOccurred('medium');
+            
+            tg.showConfirm(`Открыть ${name} за ${price} звезд?`, (ok) => {
                 if(ok) startSpin(name);
             });
         }
@@ -126,16 +83,12 @@
             const menu = document.getElementById('menu');
             const container = document.getElementById('roulette-container');
             const line = document.getElementById('items-line');
-            const nameDisplay = document.getElementById('case-name-display');
-            
             const prizes = CASE_SETTINGS[caseName];
-            nameDisplay.innerText = caseName + " Case";
             
             menu.style.display = 'none';
             container.style.display = 'flex';
             line.innerHTML = '';
 
-            // Генерируем ленту из 80 предметов
             let pool = [];
             for (let i = 0; i < 80; i++) {
                 const rand = Math.random() * 100;
@@ -146,48 +99,31 @@
                     if (rand <= sum) { selectedWin = p; break; }
                 }
                 pool.push(selectedWin);
-                
                 const div = document.createElement('div');
                 div.className = 'item-slot';
-                div.innerHTML = `
-                    <span>${selectedWin.emoji}</span>
-                    <span class="rarity-tag ${selectedWin.rarity}">${selectedWin.val}</span>
-                `;
+                div.innerHTML = <span>${selectedWin.emoji}</span><span class="text-xs mt-2">${selectedWin.val}</span>;
                 line.appendChild(div);
             }
 
-            // Настройка анимации
-            const slotWidth = 131; // 130 + 1 border
-            const targetIndex = 75; // Останавливаемся на 75-м элементе
-        const centerOffset = window.innerWidth / 2 - slotWidth / 2;
+            const slotWidth = 131;
+            const targetIndex = 75;
+            const centerOffset = window.innerWidth / 2 - slotWidth / 2;
             const finalPos = (targetIndex * slotWidth) - centerOffset;
 
             setTimeout(() => {
                 line.style.transform = translateX(-${finalPos}px);
-                
-                // Легкая вибрация при прокрутке
-                let count = 0;
-                const vibro = setInterval(() => {
-                    tg.HapticFeedback.impactOccurred('light');
-                    count++;
-                    if(count > 45) clearInterval(vibro);
-                }, 100);
-            }, 100);
+            }, 50);
 
-            // Финал через 6 секунд
             setTimeout(() => {
                 const winner = pool[targetIndex];
-                tg.HapticFeedback.notificationOccurred('success');
-                
                 tg.showPopup({
-                    title: '🎉 ВЫИГРЫШ!',
-                    message: Поздравляем! Вам выпало: ${winner.val},
-                    buttons: [{type: 'ok', text: 'ЗАБРАТЬ'}]
-                }, () => {
-                    location.reload(); 
-                });
+                    title: '🎉 ПОЗДРАВЛЯЕМ!',
+                    message: Выигрыш: ${winner.val},
+                    buttons: [{type: 'ok', text: 'КРУТО'}]
+                }, () => { location.reload(); });
             }, 6500);
         }
     </script>
 </body>
 </html>
+
